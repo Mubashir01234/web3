@@ -29,7 +29,7 @@ type TransactionEntry struct {
 }
 
 func init() {
-	flag.IntVar(&concurrentLimit, "routines", 5, "set go routines for processing.")
+	flag.IntVar(&concurrentLimit, "routines", 3, "set go routines for processing.")
 	flag.Int64Var(&startBlock, "start", 12000000, "set starting block.")
 	flag.Int64Var(&endBlock, "end", 14000000, "set ending block.")
 	flag.Parse()
@@ -57,7 +57,8 @@ func main() {
 
 	go func() {
 		for i := new(big.Int).Set(sBlock); i.Cmp(eBlock) <= 0; i.Add(i, big.NewInt(1)) {
-			blockCh <- i
+			currentBlock := new(big.Int).Set(i) // Copy the value of i
+			blockCh <- currentBlock
 		}
 		close(blockCh)
 	}()
@@ -93,7 +94,7 @@ func main() {
 }
 
 func getBlock(client *rpc.Client, blockNumber *big.Int) ([]TransactionEntry, error) {
-	// fmt.Printf("Now getting all transactions from block number %s\n", blockNumber.String())
+	fmt.Printf("Now getting all transactions from block number %s\n", blockNumber.String())
 	var block map[string]interface{}
 	err := client.Call(&block, "eth_getBlockByNumber", blockNumber, true)
 	if err != nil {
